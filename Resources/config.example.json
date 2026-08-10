@@ -1,0 +1,61 @@
+{
+  "presentOnLaunch": true,
+  "refreshSeconds": 1.0,
+  "controlStripTitle": "▚",
+  "widgets": [
+    { "type": "clock", "options": { "format": "EEE HH:mm" } },
+    { "type": "graph", "options": { "source": "cpu", "caption": "CPU", "width": 80, "color": "#4ADE80" } },
+    { "type": "graph", "options": { "source": "network", "width": 80, "color": "#38BDF8" } },
+    { "type": "battery", "options": { "showTime": true } },
+
+    { "type": "slider", "options": { "label": "Vol", "target": "volume", "min": 0, "max": 100 } },
+
+    {
+      "type": "scrubber",
+      "id": "apps",
+      "options": {
+        "cellWidth": 74,
+        "items": [
+          { "title": "iTerm", "action": "open", "target": "com.googlecode.iterm2" },
+          { "title": "Chrome", "action": "open", "target": "com.google.Chrome" },
+          { "title": "Finder", "action": "open", "target": "com.apple.finder" },
+          { "title": "Notes", "action": "open", "target": "com.apple.Notes" },
+          { "title": "Slack", "action": "open", "target": "com.tinyspeck.slackmacgap" },
+          { "title": "Spotify", "action": "open", "target": "com.spotify.client" }
+        ]
+      }
+    },
+
+    {
+      "type": "group",
+      "id": "tools",
+      "options": {
+        "label": "🧰",
+        "widgets": [
+          {
+            "type": "shortcut",
+            "id": "screenshot",
+            "options": {
+              "title": "📸",
+              "action": "shell",
+              "command": "screencapture -i ~/Desktop/shot-$(date +%s).png",
+              "longPress": { "action": "shell", "command": "screencapture -W ~/Desktop/window-$(date +%s).png" },
+              "swipeLeft": { "action": "shell", "command": "screencapture ~/Desktop/full-$(date +%s).png" }
+            }
+          },
+          {
+            "type": "shortcut",
+            "id": "lock",
+            "options": { "title": "🔒", "action": "hotkey", "keys": ["ctrl", "cmd", "q"] }
+          },
+          {
+            "type": "shortcut",
+            "id": "iterm",
+            "options": { "title": "⌘", "action": "open", "target": "com.googlecode.iterm2" }
+          },
+          { "type": "media", "options": { "showTitle": true, "titleWidth": 140 } }
+        ]
+      }
+    }
+  ]
+}

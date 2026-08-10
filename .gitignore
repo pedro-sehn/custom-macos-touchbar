@@ -1,0 +1,11 @@
+# SwiftPM build products
+.build/
+
+# Assembled .app bundle from Scripts/bundle.sh
+build/
+
+# SwiftPM resolved dependencies (no dependencies here, but harmless)
+.swiftpm/
+
+# macOS
+.DS_Store
