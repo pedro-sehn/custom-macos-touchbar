@@ -9,7 +9,7 @@ See [PLAN.md](PLAN.md) for the design rationale and roadmap.
 ## Build & run
 
 ```bash
-./Scripts/bundle.shw
+./Scripts/bundle.sh
 open ./build/TouchBarApp.app
 ```
 
