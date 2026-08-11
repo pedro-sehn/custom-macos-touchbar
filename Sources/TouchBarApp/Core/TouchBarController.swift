@@ -8,6 +8,9 @@ final class TouchBarController: NSObject, NSTouchBarDelegate, BarNavigating {
 
     private var widgets: [Widget] = []
     private var allWidgets: [Widget] = []
+    /// Bundle identifier → that app's top-level widgets.
+    private var appLayouts: [String: [Widget]] = [:]
+    private var activeLayoutKey: String?
     private var itemsByIdentifier: [NSTouchBarItem.Identifier: NSTouchBarItem] = [:]
     private let ticker = Ticker()
     private(set) var touchBar: NSTouchBar?
@@ -26,8 +29,19 @@ final class TouchBarController: NSObject, NSTouchBarDelegate, BarNavigating {
         itemsByIdentifier.removeAll()
         navigationStack.removeAll()
 
+        appLayouts.removeAll()
+        activeLayoutKey = nil
+
         widgets = WidgetRegistry.build(config.widgets)
-        allWidgets = Self.flatten(widgets)
+
+        // Per-app layouts are built up front, not on switch: constructing
+        // widgets mid-activation would stutter, and every item must already be
+        // resolvable by the delegate when the identifier list changes.
+        for (bundleID, configs) in config.apps ?? [:] {
+            appLayouts[bundleID] = WidgetRegistry.build(configs, idPrefix: bundleID)
+        }
+
+        allWidgets = Self.flatten(widgets + appLayouts.values.flatMap { $0 })
 
         // Groups need a way back to this controller to drive navigation.
         for case let group as GroupWidget in allWidgets {
@@ -48,7 +62,21 @@ final class TouchBarController: NSObject, NSTouchBarDelegate, BarNavigating {
         }
         ticker.start(interval: config.refreshSeconds ?? 1.0)
 
-        Log.app.notice("bar rebuilt: \(self.widgets.count) top-level, \(self.allWidgets.count) total widget(s)")
+        Log.app.notice("bar rebuilt: \(self.widgets.count) top-level, \(self.allWidgets.count) total widget(s), \(self.appLayouts.count) app layout(s)")
+    }
+
+    /// Swaps in the layout for the frontmost app, or the default bar when that
+    /// app has none. Cheap enough to call on every activation: it early-returns
+    /// unless the resolved layout actually differs.
+    func showLayout(forBundleIdentifier bundleID: String?) {
+        let key = bundleID.flatMap { appLayouts[$0] != nil ? $0 : nil }
+        guard key != activeLayoutKey else { return }
+        activeLayoutKey = key
+
+        let layout = key.flatMap { appLayouts[$0] } ?? widgets
+        navigationStack.removeAll()   // don't strand the user inside a group
+        setItems(layout.map(\.identifier))
+        Log.app.notice("layout -> \(key ?? "default", privacy: .public)")
     }
 
     func stop() {
@@ -90,7 +118,9 @@ final class TouchBarController: NSObject, NSTouchBarDelegate, BarNavigating {
 
         if identifier == Self.backIdentifier {
             let item = NSCustomTouchBarItem(identifier: identifier)
-            item.view = BarStyle.button(title: "‹ Back", target: self, action: #selector(back))
+            var bindings = GestureView.Bindings()
+            bindings.tapHandler = { [weak self] in self?.pop() }
+            item.view = GestureView(title: "‹ Back", tint: nil, bindings: bindings)
             itemsByIdentifier[identifier] = item
             return item
         }

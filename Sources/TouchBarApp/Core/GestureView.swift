@@ -9,6 +9,8 @@ import AppKit
 final class GestureView: NSView {
     struct Bindings {
         var tap: ActionSpec?
+        /// In-app tap handling (group navigation), as opposed to a config action.
+        var tapHandler: (() -> Void)?
         var longPress: ActionSpec?
         var swipeLeft: ActionSpec?
         var swipeRight: ActionSpec?
@@ -20,7 +22,6 @@ final class GestureView: NSView {
     private let tint: NSColor?
     private var title: String
     private var image: NSImage?
-    private var isPressed = false
 
     /// Ignore jitter: below this a pan is really just a sloppy tap.
     private let swipeThreshold: CGFloat = 24
@@ -32,6 +33,7 @@ final class GestureView: NSView {
         super.init(frame: .zero)
         wantsLayer = true
         layer?.cornerRadius = 6
+        layer?.masksToBounds = true   // keeps the ripple inside the pill
         if title.hasEmoji { image = BarStyle.emojiImage(title) }
         installRecognizers()
         setContentSize()
@@ -75,9 +77,10 @@ final class GestureView: NSView {
         }
     }
 
-    @objc private func handleTap() {
-        flash()
+    @objc private func handleTap(_ recognizer: NSClickGestureRecognizer) {
+        ripple(at: recognizer.location(in: self))
         bindings.tap?.run()
+        bindings.tapHandler?()
     }
 
     @objc private func handlePress(_ recognizer: NSPressGestureRecognizer) {
@@ -107,22 +110,43 @@ final class GestureView: NSView {
         NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
     }
 
-    private func flash() {
-        isPressed = true
-        needsDisplay = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
-            self?.isPressed = false
-            self?.needsDisplay = true
-        }
+    /// Expanding ring from the touch point. The Touch Bar gives no press
+    /// feedback of its own beyond haptics, so a tap can otherwise feel like it
+    /// did nothing — especially for actions with no visible result.
+    private func ripple(at point: NSPoint) {
+        guard let layer else { return }
+        let ring = CAShapeLayer()
+        let radius = max(bounds.width, bounds.height)
+        ring.path = CGPath(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius,
+                                             width: radius * 2, height: radius * 2),
+                           transform: nil)
+        ring.fillColor = NSColor.white.withAlphaComponent(0.35).cgColor
+        ring.opacity = 0
+        layer.addSublayer(ring)
+
+        let scale = CABasicAnimation(keyPath: "transform.scale")
+        scale.fromValue = 0.05
+        scale.toValue = 1.0
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = 0.9
+        fade.toValue = 0.0
+
+        let group = CAAnimationGroup()
+        group.animations = [scale, fade]
+        group.duration = 0.35
+        group.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        ring.add(group, forKey: "ripple")
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.36) { ring.removeFromSuperlayer() }
     }
 
     // MARK: - Drawing
 
     override func draw(_ dirtyRect: NSRect) {
-        let path = NSBezierPath(roundedRect: bounds, xRadius: 6, yRadius: 6)
         let base = tint ?? NSColor(white: 0.22, alpha: 1)
-        (isPressed ? base.highlight(withLevel: 0.3) ?? base : base).setFill()
-        path.fill()
+        // Subtle top-down gradient so the pill has some dimension to it.
+        NSGradient(colors: [base.highlight(withLevel: 0.12) ?? base, base])?
+            .draw(in: NSBezierPath(roundedRect: bounds, xRadius: 6, yRadius: 6), angle: -90)
 
         if let image {
             let origin = NSPoint(x: (bounds.width - image.size.width) / 2,

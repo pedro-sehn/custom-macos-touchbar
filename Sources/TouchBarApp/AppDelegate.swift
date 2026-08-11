@@ -24,6 +24,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         watcher = ConfigWatcher { [weak self] in self?.reloadConfig() }
         installStatusItem()
+        observeFrontmostApp()
+    }
+
+    /// Drives per-app layouts. Also fires once now, since the app that was
+    /// already frontmost at launch never sends an activation notification.
+    private func observeFrontmostApp() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(frontmostAppChanged(_:)),
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil)
+        barController.showLayout(
+            forBundleIdentifier: NSWorkspace.shared.frontmostApplication?.bundleIdentifier)
+    }
+
+    @objc private func frontmostAppChanged(_ notification: Notification) {
+        let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+        barController.showLayout(forBundleIdentifier: app?.bundleIdentifier)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -36,6 +54,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func reloadConfig() {
         config = ConfigStore.load()
         barController.rebuild(with: config)
+        barController.showLayout(
+            forBundleIdentifier: NSWorkspace.shared.frontmostApplication?.bundleIdentifier)
         // The presented bar still points at the old NSTouchBar instance.
         stripController.representIfNeeded()
         Log.config.notice("config reloaded")

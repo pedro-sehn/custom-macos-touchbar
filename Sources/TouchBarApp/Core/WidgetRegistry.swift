@@ -20,6 +20,9 @@ enum WidgetRegistry {
         "slider":    { SliderWidget(id: $0, options: $1) },
         "scrubber":  { ScrubberWidget(id: $0, options: $1) },
         "segmented": { SegmentedWidget(id: $0, options: $1) },
+        "toggle":    { ToggleWidget(id: $0, options: $1) },
+        "pomodoro":  { PomodoroWidget(id: $0, options: $1) },
+        "clipboard": { ClipboardWidget(id: $0, options: $1) },
         "group":     { GroupWidget(id: $0, options: $1) }
     ]
 

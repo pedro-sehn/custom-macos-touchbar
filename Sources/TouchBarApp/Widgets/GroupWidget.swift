@@ -52,13 +52,13 @@ final class GroupWidget: NSObject, Widget {
             return nil
         }
         let item = NSCustomTouchBarItem(identifier: identifier)
-        let button = BarStyle.button(title: label, target: self, action: #selector(open))
-        if let tint { button.bezelColor = tint }
-        item.view = button
+        var bindings = GestureView.Bindings()
+        bindings.tapHandler = { [weak self] in self?.open() }
+        item.view = GestureView(title: label, tint: tint, bindings: bindings)
         return item
     }
 
-    @objc private func open() {
+    private func open() {
         guard let navigator else {
             Log.widget.error("group \(self.identifier.rawValue, privacy: .public) has no navigator")
             return

@@ -9,7 +9,6 @@ final class ShortcutWidget: NSObject, Widget {
     private let tint: NSColor?
     private let tap: ActionSpec
     private let bindings: GestureView.Bindings
-    private let hasGestures: Bool
 
     init(id: String, options: Options) {
         identifier = NSTouchBarItem.Identifier("com.pedro.touchbarapp.\(id)")
@@ -24,25 +23,16 @@ final class ShortcutWidget: NSObject, Widget {
         bindings.swipeRight = ActionSpec(nested: options.raw["swipeRight"])
         bindings.pan = ActionSpec(nested: options.raw["pan"])
         self.bindings = bindings
-
-        hasGestures = bindings.longPress != nil || bindings.swipeLeft != nil
-            || bindings.swipeRight != nil || bindings.pan != nil
         super.init()
     }
 
+    /// Always GestureView, even with only a tap bound: it is what carries the
+    /// press ripple and the gradient bezel. NSButton would render neither.
     func makeItem() -> NSTouchBarItem? {
         let item = NSCustomTouchBarItem(identifier: identifier)
-        if hasGestures {
-            item.view = GestureView(title: title, tint: tint, bindings: bindings)
-        } else {
-            let button = BarStyle.button(title: title, target: self, action: #selector(fire))
-            if let tint { button.bezelColor = tint }
-            item.view = button
-        }
+        item.view = GestureView(title: title, tint: tint, bindings: bindings)
         return item
     }
-
-    @objc private func fire() { tap.run() }
 }
 
 extension NSColor {

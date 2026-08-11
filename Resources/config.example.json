@@ -2,29 +2,33 @@
   "presentOnLaunch": true,
   "refreshSeconds": 1.0,
   "controlStripTitle": "▚",
+
   "widgets": [
     { "type": "clock", "options": { "format": "EEE HH:mm" } },
-    { "type": "graph", "options": { "source": "cpu", "caption": "CPU", "width": 80, "color": "#4ADE80" } },
-    { "type": "graph", "options": { "source": "network", "width": 80, "color": "#38BDF8" } },
-    { "type": "battery", "options": { "showTime": true } },
-
-    { "type": "slider", "options": { "label": "Vol", "target": "volume", "min": 0, "max": 100 } },
-
     {
-      "type": "scrubber",
-      "id": "apps",
+      "type": "graph",
       "options": {
-        "cellWidth": 74,
-        "items": [
-          { "title": "iTerm", "action": "open", "target": "com.googlecode.iterm2" },
-          { "title": "Chrome", "action": "open", "target": "com.google.Chrome" },
-          { "title": "Finder", "action": "open", "target": "com.apple.finder" },
-          { "title": "Notes", "action": "open", "target": "com.apple.Notes" },
-          { "title": "Slack", "action": "open", "target": "com.tinyspeck.slackmacgap" },
-          { "title": "Spotify", "action": "open", "target": "com.spotify.client" }
-        ]
+        "source": "cpu",
+        "caption": "CPU",
+        "width": 80,
+        "color": "#4ADE80"
       }
     },
+    { "type": "battery", "options": { "showTime": true } },
+    {
+      "type": "slider",
+      "options": { "label": "Vol", "target": "volume", "min": 0, "max": 100 }
+    },
+
+    {
+      "type": "toggle",
+      "options": { "target": "caffeinate", "onTitle": "☕️", "offTitle": "💤" }
+    },
+    {
+      "type": "toggle",
+      "options": { "target": "darkmode", "onTitle": "🌙", "offTitle": "☀️" }
+    },
+    { "type": "pomodoro", "options": { "minutes": 25, "breakMinutes": 5 } },
 
     {
       "type": "group",
@@ -39,23 +43,74 @@
               "title": "📸",
               "action": "shell",
               "command": "screencapture -i ~/Desktop/shot-$(date +%s).png",
-              "longPress": { "action": "shell", "command": "screencapture -W ~/Desktop/window-$(date +%s).png" },
-              "swipeLeft": { "action": "shell", "command": "screencapture ~/Desktop/full-$(date +%s).png" }
+              "longPress": {
+                "action": "shell",
+                "command": "screencapture -W ~/Desktop/window-$(date +%s).png"
+              }
             }
           },
           {
             "type": "shortcut",
             "id": "lock",
-            "options": { "title": "🔒", "action": "hotkey", "keys": ["ctrl", "cmd", "q"] }
+            "options": {
+              "title": "🔒",
+              "action": "hotkey",
+              "keys": ["ctrl", "cmd", "q"]
+            }
           },
           {
-            "type": "shortcut",
-            "id": "iterm",
-            "options": { "title": "⌘", "action": "open", "target": "com.googlecode.iterm2" }
-          },
-          { "type": "media", "options": { "showTitle": true, "titleWidth": 140 } }
+            "type": "media",
+            "options": { "showTitle": true, "titleWidth": 140 }
+          }
+        ]
+      }
+    },
+
+    {
+      "type": "group",
+      "id": "clip",
+      "options": {
+        "label": "📋",
+        "widgets": [
+          {
+            "type": "clipboard",
+            "options": { "capacity": 12, "cellWidth": 110, "paste": true }
+          }
         ]
       }
     }
-  ]
+  ],
+
+  "apps": {
+    "com.googlecode.iterm2": [
+      { "type": "clock", "options": { "format": "HH:mm" } },
+      {
+        "type": "graph",
+        "options": { "source": "cpu", "caption": "CPU", "width": 80 }
+      },
+      {
+        "type": "shortcut",
+        "options": { "title": "git status", "action": "hotkey", "keys": ["g"] }
+      },
+      { "type": "clipboard", "options": { "capacity": 8, "cellWidth": 120 } }
+    ],
+
+    "company.thebrowser.Browser": [
+      { "type": "clock", "options": { "format": "HH:mm" } },
+      {
+        "type": "shortcut",
+        "options": {
+          "title": "↩︎ Tab",
+          "action": "hotkey",
+          "keys": ["cmd", "shift", "t"]
+        }
+      },
+      {
+        "type": "shortcut",
+        "options": { "title": "🔍", "action": "hotkey", "keys": ["cmd", "f"] }
+      },
+      { "type": "media", "options": { "showTitle": true, "titleWidth": 200 } },
+      { "type": "battery", "options": { "showTime": false } }
+    ]
+  }
 }

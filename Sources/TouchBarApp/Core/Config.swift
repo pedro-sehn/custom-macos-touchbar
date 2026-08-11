@@ -65,6 +65,9 @@ struct AppConfig: Codable {
     var refreshSeconds: Double?
     var controlStripTitle: String?
     var widgets: [WidgetConfig]
+    /// Per-app layouts keyed by bundle identifier. The frontmost app's layout
+    /// replaces `widgets`; anything not listed falls back to it.
+    var apps: [String: [WidgetConfig]]?
 
     static let `default` = AppConfig(
         presentOnLaunch: true,
@@ -75,7 +78,8 @@ struct AppConfig: Codable {
             WidgetConfig(type: "cpu", id: nil, options: nil),
             WidgetConfig(type: "memory", id: nil, options: nil),
             WidgetConfig(type: "battery", id: nil, options: nil)
-        ]
+        ],
+        apps: nil
     )
 }
 

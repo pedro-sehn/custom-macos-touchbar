@@ -12,6 +12,9 @@ final class GraphWidget: NSObject, Widget {
     private let width: CGFloat
     private let caption: String
     private let color: NSColor
+    /// When set, the line colour tracks the value (green → amber → red)
+    /// instead of staying fixed.
+    private let reactive: Bool
 
     private let cpu = CPUSampler()
     private let memory = MemorySampler()
@@ -28,13 +31,14 @@ final class GraphWidget: NSObject, Widget {
         width = CGFloat(options.double("width", 90))
         caption = options.string("caption", "")
         color = options.string("color").flatMap(NSColor.fromHex) ?? NSColor.systemGreen
+        reactive = options.bool("reactive", options.raw["color"] == nil)
         super.init()
         _ = sample()   // prime the delta-based samplers
     }
 
     func makeItem() -> NSTouchBarItem? {
         let item = NSCustomTouchBarItem(identifier: identifier)
-        let view = SparklineView(color: color, caption: caption)
+        let view = SparklineView(color: color, caption: caption, reactive: reactive)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.widthAnchor.constraint(equalToConstant: width).isActive = true
         self.view = view
@@ -67,13 +71,20 @@ final class GraphWidget: NSObject, Widget {
 final class SparklineView: NSView {
     private var samples: [Double] = []
     private var capacity = 60
-    private let color: NSColor
+    private let baseColor: NSColor
     private let caption: String
+    private let reactive: Bool
     private var label = ""
 
-    init(color: NSColor, caption: String) {
-        self.color = color
+    /// Colour eases toward its target rather than snapping, so a single spiky
+    /// sample doesn't strobe the widget.
+    private var displayedColor: NSColor
+
+    init(color: NSColor, caption: String, reactive: Bool) {
+        self.baseColor = color
         self.caption = caption
+        self.reactive = reactive
+        self.displayedColor = reactive ? Appearance.heat(0) : color
         super.init(frame: .zero)
         wantsLayer = true
     }
@@ -81,9 +92,13 @@ final class SparklineView: NSView {
     required init?(coder: NSCoder) { fatalError("not used") }
 
     func push(_ value: Double, label: String) {
-        samples.append(min(max(value, 0), 1))
+        let clamped = min(max(value, 0), 1)
+        samples.append(clamped)
         if samples.count > capacity { samples.removeFirst(samples.count - capacity) }
         self.label = label
+        if reactive {
+            displayedColor = Appearance.lerp(displayedColor, Appearance.heat(clamped), 0.35)
+        }
         needsDisplay = true
     }
 
@@ -110,8 +125,11 @@ final class SparklineView: NSView {
         fill.line(to: NSPoint(x: plot.maxX, y: plot.minY))
         fill.close()
 
-        color.withAlphaComponent(0.25).setFill()
-        fill.fill()
+        let color = reactive ? displayedColor : baseColor
+        // Gradient under the curve reads as depth without stealing contrast
+        // from the label sitting on top of it.
+        NSGradient(colors: [color.withAlphaComponent(0.45), color.withAlphaComponent(0.04)])?
+            .draw(in: fill, angle: 90)
         color.setStroke()
         line.lineWidth = 1.5
         line.stroke()
