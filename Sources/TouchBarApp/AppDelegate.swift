@@ -13,6 +13,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         ConfigStore.seedIfMissing()
         config = ConfigStore.load()
+        // Before anything builds a label: menus, the Back button and date
+        // formatters all read the resolved language at construction time.
+        L10n.configure(language: config.language)
 
         stripController = ControlStripController(barController: barController)
         barController.rebuild(with: config)
@@ -53,6 +56,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func reloadConfig() {
         config = ConfigStore.load()
+        L10n.configure(language: config.language)
+        rebuildStatusMenu()   // menu titles are baked in at build time
         barController.rebuild(with: config)
         barController.showLayout(
             forBundleIdentifier: NSWorkspace.shared.frontmostApplication?.bundleIdentifier)
@@ -72,24 +77,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.title = "▚"
         item.button?.toolTip = "TouchBarApp"
+        statusItem = item
+        rebuildStatusMenu()
+    }
 
+    /// Rebuilt rather than mutated on reload: NSMenuItem titles are set at
+    /// construction, so a language change needs fresh items.
+    private func rebuildStatusMenu() {
+        guard let statusItem else { return }
         let menu = NSMenu()
-        menu.addItem(withTitle: "Toggle Touch Bar", action: #selector(toggleBar), keyEquivalent: "")
+        menu.addItem(withTitle: L10n.string("menu.toggle"), action: #selector(toggleBar), keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Reload Config", action: #selector(reloadConfig), keyEquivalent: "r")
-        menu.addItem(withTitle: "Edit Config…", action: #selector(editConfig), keyEquivalent: ",")
-        let launchItem = NSMenuItem(title: "Launch at Login",
+        menu.addItem(withTitle: L10n.string("menu.reload"), action: #selector(reloadConfig), keyEquivalent: "r")
+        menu.addItem(withTitle: L10n.string("menu.edit"), action: #selector(editConfig), keyEquivalent: ",")
+        let launchItem = NSMenuItem(title: L10n.string("menu.launchAtLogin"),
                                     action: #selector(toggleLaunchAtLogin),
                                     keyEquivalent: "")
         launchItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(launchItem)
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: L10n.string("menu.quit"),
+                     action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         for menuItem in menu.items where menuItem.action != #selector(NSApplication.terminate(_:)) {
             menuItem.target = self
         }
-        item.menu = menu
-        statusItem = item
+        statusItem.menu = menu
     }
 
     @objc private func toggleBar() { stripController.toggle() }

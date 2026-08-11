@@ -76,8 +76,7 @@ final class PomodoroWidget: NSObject, Widget {
         haptic(.levelChange)
         view?.flash(phase == .rest ? .systemTeal : .systemRed)
         guard notifyOnFinish else { return }
-        notify(finished == .work ? "Pomodoro done — take a break"
-                                 : "Break over — back to work")
+        notify(L10n.string(finished == .work ? "pomodoro.workDone" : "pomodoro.breakDone"))
     }
 
     private func render() {
@@ -107,9 +106,10 @@ final class PomodoroWidget: NSObject, Widget {
 
     private func notify(_ message: String) {
         let escaped = message.replacingOccurrences(of: "\"", with: "\\\"")
+        let title = L10n.string("pomodoro.title").replacingOccurrences(of: "\"", with: "\\\"")
         DispatchQueue.global(qos: .utility).async {
             var error: NSDictionary?
-            NSAppleScript(source: "display notification \"\(escaped)\" with title \"Pomodoro\"")?
+            NSAppleScript(source: "display notification \"\(escaped)\" with title \"\(title)\"")?
                 .executeAndReturnError(&error)
         }
     }

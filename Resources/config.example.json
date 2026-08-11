@@ -2,6 +2,7 @@
   "presentOnLaunch": true,
   "refreshSeconds": 1.0,
   "controlStripTitle": "▚",
+  "language": "auto",
 
   "widgets": [
     { "type": "clock", "options": { "format": "EEE HH:mm" } },

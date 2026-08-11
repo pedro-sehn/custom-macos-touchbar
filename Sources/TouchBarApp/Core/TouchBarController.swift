@@ -120,7 +120,7 @@ final class TouchBarController: NSObject, NSTouchBarDelegate, BarNavigating {
             let item = NSCustomTouchBarItem(identifier: identifier)
             var bindings = GestureView.Bindings()
             bindings.tapHandler = { [weak self] in self?.pop() }
-            item.view = GestureView(title: "‹ Back", tint: nil, bindings: bindings)
+            item.view = GestureView(title: L10n.string("bar.back"), tint: nil, bindings: bindings)
             itemsByIdentifier[identifier] = item
             return item
         }

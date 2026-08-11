@@ -64,6 +64,10 @@ struct AppConfig: Codable {
     var presentOnLaunch: Bool?
     var refreshSeconds: Double?
     var controlStripTitle: String?
+    /// Language code ("en", "pt", "pt-BR", "es") or "auto" to follow the
+    /// system. Affects app chrome and date/number formatting only — widget
+    /// titles and prefixes are yours.
+    var language: String?
     var widgets: [WidgetConfig]
     /// Per-app layouts keyed by bundle identifier. The frontmost app's layout
     /// replaces `widgets`; anything not listed falls back to it.
@@ -73,6 +77,7 @@ struct AppConfig: Codable {
         presentOnLaunch: true,
         refreshSeconds: 1.0,
         controlStripTitle: "▚",
+        language: "auto",
         widgets: [
             WidgetConfig(type: "clock", id: nil, options: nil),
             WidgetConfig(type: "cpu", id: nil, options: nil),

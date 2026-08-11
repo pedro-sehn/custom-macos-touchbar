@@ -38,6 +38,29 @@ on first launch. Edits are picked up within ~1s — no restart.
 }
 ```
 
+### Language
+
+```json
+{ "language": "auto" }
+```
+
+`"auto"` (the default) follows the system. Otherwise a code: `"en"`, `"pt"`,
+`"pt-BR"`, `"es"`. Region variants share a table, so `pt-BR` and `pt-PT` both
+use `pt` for text while still formatting dates their own way.
+
+This covers **app chrome only** — the menu bar, the `‹ Back` button, and
+pomodoro notifications. Widget `title`, `prefix`, and `caption` are your
+strings; translate them by editing your own config. The setting also sets the
+locale used by `clock`, so `"format": "EEE"` yields `Mon` under `en` and `seg`
+under `pt`.
+
+Adding a language is one entry in `tables` in `Core/Localization.swift`.
+Missing keys fall back to English per-key rather than rendering blank, and a
+partial table is logged at startup with exactly which keys it lacks.
+
+Not `.lproj` bundles and `NSLocalizedString`: the app is assembled by a shell
+script with no Xcode build phase to compile `.strings` files.
+
 ### Widget types
 
 **Readouts**

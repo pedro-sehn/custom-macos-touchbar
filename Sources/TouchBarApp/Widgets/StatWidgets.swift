@@ -4,6 +4,9 @@ final class ClockWidget: TextWidget {
     private let formatter = DateFormatter()
 
     init(id: String, options: Options) {
+        // Locale before dateFormat: setting it afterwards re-resolves the
+        // format template and can silently rewrite the pattern.
+        formatter.locale = L10n.locale
         formatter.dateFormat = options.string("format", "EEE HH:mm")
         if let tz = options.string("timeZone").flatMap(TimeZone.init(identifier:)) {
             formatter.timeZone = tz
