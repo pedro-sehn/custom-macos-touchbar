@@ -72,6 +72,7 @@ script with no Xcode build phase to compile `.strings` files.
 | `memory` | `prefix`, `showBytes` |
 | `battery` | `showTime` |
 | `network` | — |
+| `crypto` | `symbol` (e.g. `BTC`), `currency` (`usd`/`brl`/`eur`), `decimals`, `width`, `staleAfter` — live market price |
 | `graph` | `source` (`cpu`/`memory`/`network`), `caption`, `width`, `color`, `reactive` — live sparkline |
 | `spacer` | `width` |
 
@@ -91,6 +92,25 @@ script with no Xcode build phase to compile `.strings` files.
 
 `group` is the fix for a crowded bar: `NSTouchBar` silently drops items that
 don't fit the ~1085pt width, so park extras one tap deep instead. Groups nest.
+
+#### Crypto prices
+
+Each `crypto` widget follows one market symbol. `BTC` and `ETH` are supported;
+other symbols work when the selected exchange lists that market. Defaults to
+`BTC`/`usd`; choose quote currency per widget. `decimals` defaults to 2 (0–8),
+`width` to 180pt, and `staleAfter` to 30 seconds (minimum 5):
+
+```json
+{ "type": "crypto", "options": { "symbol": "BTC", "currency": "usd" } },
+{ "type": "crypto", "options": { "symbol": "ETH", "currency": "eur", "decimals": 2 } },
+{ "type": "crypto", "options": { "symbol": "BTC", "currency": "brl", "staleAfter": 30 } }
+```
+
+Uses public, keyless Coinbase WebSocket markets for USD/EUR and Binance public
+market-data WebSocket for BRL. No paid API, API key, or USDT-as-USD conversion.
+Connections are shared across widgets and reconnect automatically. Prices are
+exchange-specific; `~` marks a stale last price, `—` means no usable quote.
+Use a `group` to keep several price readouts from crowding the main bar.
 
 Tapping a group swaps the bar's item list and pushes onto a navigation stack
 (with a `‹ Back` button) rather than using `NSPopoverTouchBarItem` — popover

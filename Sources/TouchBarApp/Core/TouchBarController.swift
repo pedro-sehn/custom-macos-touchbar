@@ -43,6 +43,9 @@ final class TouchBarController: NSObject, NSTouchBarDelegate, BarNavigating {
 
         allWidgets = Self.flatten(widgets + appLayouts.values.flatMap { $0 })
 
+        let cryptoMarkets = Set(allWidgets.compactMap { ($0 as? CryptoWidget)?.market })
+        CryptoPriceService.shared.configure(markets: cryptoMarkets)
+
         // Groups need a way back to this controller to drive navigation.
         for case let group as GroupWidget in allWidgets {
             group.navigator = self
@@ -82,6 +85,7 @@ final class TouchBarController: NSObject, NSTouchBarDelegate, BarNavigating {
     func stop() {
         ticker.stop()
         ticker.removeAll()
+        CryptoPriceService.shared.stop()
     }
 
     // MARK: - BarNavigating

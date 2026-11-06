@@ -12,6 +12,7 @@ enum WidgetRegistry {
         "memory":    { MemoryWidget(id: $0, options: $1) },
         "battery":   { BatteryWidget(id: $0, options: $1) },
         "network":   { NetworkWidget(id: $0, options: $1) },
+        "crypto":    { CryptoWidget(id: $0, options: $1) },
         "graph":     { GraphWidget(id: $0, options: $1) },
         "spacer":    { SpacerWidget(id: $0, options: $1) },
         // Interactive
