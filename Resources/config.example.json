@@ -33,6 +33,19 @@
 
     {
       "type": "group",
+      "id": "crypto",
+      "options": {
+        "label": "₿",
+        "widgets": [
+          { "type": "crypto", "options": { "symbol": "BTC", "currency": "usd" } },
+          { "type": "crypto", "options": { "symbol": "ETH", "currency": "eur" } },
+          { "type": "crypto", "options": { "symbol": "BTC", "currency": "brl" } }
+        ]
+      }
+    },
+
+    {
+      "type": "group",
       "id": "tools",
       "options": {
         "label": "🧰",
